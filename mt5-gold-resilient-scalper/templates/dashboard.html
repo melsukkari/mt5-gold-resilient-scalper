@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <!-- Status Panel -->
+    <div class="col-md-12 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-tachometer-alt"></i> Live Status</h5>
+                <span id="marketState" class="badge bg-secondary">CONNECTING...</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-2 col-sm-6">
+                        <div class="stat-box text-center">
+                            <small class="text-muted">Balance</small>
+                            <h4 id="balance" class="text-success">$0.00</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-sm-6">
+                        <div class="stat-box text-center">
+                            <small class="text-muted">Equity</small>
+                            <h4 id="equity">$0.00</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-sm-6">
+                        <div class="stat-box text-center">
+                            <small class="text-muted">Margin Level</small>
+                            <h4 id="marginLevel">0%</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-sm-6">
+                        <div class="stat-box text-center">
+                            <small class="text-muted">XAUUSD Price</small>
+                            <h4 id="currentPrice">$0.00</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-sm-6">
+                        <div class="stat-box text-center">
+                            <small class="text-muted">Spread</small>
+                            <h4 id="spread">0 pts</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-sm-6">
+                        <div class="stat-box text-center">
+                            <small class="text-muted">ATR (H1)</small>
+                            <h4 id="atrValue">0.00</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-sliders-h"></i> Control Panel</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button id="btnStart" class="btn btn-success" onclick="toggleTrading(true)">
+                        <i class="fas fa-play"></i> Start Trading
+                    </button>
+                    <button id="btnStop" class="btn btn-warning" onclick="toggleTrading(false)" disabled>
+                        <i class="fas fa-pause"></i> Stop Trading
+                    </button>
+                    <button id="btnEmergency" class="btn btn-danger" onclick="emergencyStop()">
+                        <i class="fas fa-exclamation-triangle"></i> Emergency Close All
+                    </button>
+                </div>
+                <hr>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="autoRefresh" checked>
+                    <label class="form-check-label" for="autoRefresh">Auto-refresh (5s)</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Panel -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-cog"></i> Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form id="configForm">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label">Risk %</label>
+                            <input type="number" class="form-control" id="cfgRiskPercent" step="0.1" min="0.1" max="10">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Daily Loss Limit %</label>
+                            <input type="number" class="form-control" id="cfgDailyLoss" step="0.1" min="1" max="50">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">SL Multiplier</label>
+                            <input type="number" class="form-control" id="cfgSlMult" step="0.1" min="1" max="10">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">TP Multiplier</label>
+                            <input type="number" class="form-control" id="cfgTpMult" step="0.1" min="1" max="10">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Max Spread (pts)</label>
+                            <input type="number" class="form-control" id="cfgMaxSpread" min="10" max="100">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">ADX Threshold</label>
+                            <input type="number" class="form-control" id="cfgAdx" step="1" min="10" max="50">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3 w-100">
+                        <i class="fas fa-save"></i> Save Configuration
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="col-md-8 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-area"></i> Price Chart (M5)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="priceChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trade Log -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Recent Trades</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Type</th>
+                                <th>Lots</th>
+                                <th>P/L</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tradeLogBody">
+                            <tr><td colspan="4" class="text-center text-muted">No trades yet</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Risk Summary Modal -->
+<div class="modal fade" id="riskModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Risk Summary</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="riskModalBody">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        loadConfig();
+        updateStatus();
+        startAutoRefresh();
+    });
+</script>
+{% endblock %}
