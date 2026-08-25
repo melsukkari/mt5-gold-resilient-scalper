@@ -33,8 +33,20 @@ class MT5Connector:
             bool: True if connection successful, False otherwise.
         """
         try:
-            # Initialize MT5
-            if not mt5.initialize():
+            conn_cfg = config.connection
+            init_kwargs: Dict[str, Any] = {}
+
+            if conn_cfg.MT5_PATH:
+                init_kwargs["path"] = conn_cfg.MT5_PATH
+            if conn_cfg.MT5_LOGIN:
+                init_kwargs["login"] = conn_cfg.MT5_LOGIN
+            if conn_cfg.MT5_PASSWORD:
+                init_kwargs["password"] = conn_cfg.MT5_PASSWORD
+            if conn_cfg.MT5_SERVER:
+                init_kwargs["server"] = conn_cfg.MT5_SERVER
+
+            # Initialize MT5 with explicit terminal path (fixes IPC pipe timeout)
+            if not mt5.initialize(**init_kwargs):
                 self._last_error = f"MT5 initialize failed: {mt5.last_error()}"
                 logger.error(self._last_error)
                 return False

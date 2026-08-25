@@ -8,6 +8,21 @@ from typing import Optional
 
 
 @dataclass
+class MT5ConnectionConfig:
+    """Local MT5 terminal connection settings (fixes IPC pipe timeout errors)."""
+
+    # Full path to YOUR local terminal64.exe.
+    # Example: r"C:\Program Files\MetaTrader 5\terminal64.exe"
+    MT5_PATH: str = r"C:\Program Files\MetaTrader 5\terminal64.exe"
+
+    # Optional — only set these if you want Python to log in itself
+    # instead of using the terminal's already-logged-in session.
+    MT5_LOGIN: Optional[int] = None
+    MT5_PASSWORD: Optional[str] = None
+    MT5_SERVER: Optional[str] = None
+
+
+@dataclass
 class SymbolConfig:
     """Configuration for XAUUSD symbol properties."""
 
@@ -118,6 +133,7 @@ class TradingConfig:
 class Config:
     """Master configuration class."""
 
+    connection: MT5ConnectionConfig = field(default_factory=MT5ConnectionConfig)
     symbol: SymbolConfig = field(default_factory=SymbolConfig)
     indicators: IndicatorConfig = field(default_factory=IndicatorConfig)
     market_filter: MarketFilterConfig = field(default_factory=MarketFilterConfig)
