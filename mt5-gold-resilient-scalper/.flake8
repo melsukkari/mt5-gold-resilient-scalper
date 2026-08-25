@@ -1,0 +1,36 @@
+[flake8]
+# Maximum line length
+max-line-length = 127
+# Maximum complexity
+max-complexity = 10
+# Ignore certain error codes
+ignore = 
+    # E203: whitespace before ':' (conflicts with Black)
+    E203,
+    # W503: line break before binary operator (conflicts with Black)
+    W503,
+    # E501: line too long (handled by max-line-length)
+    E501
+# Exclude directories
+exclude = 
+    .git,
+    __pycache__,
+    build,
+    dist,
+    *.egg-info,
+    venv,
+    env,
+    .venv
+# Per-file ignores
+per-file-ignores =
+    # Ignore unused imports in __init__.py files
+    __init__.py:F401
+    # Ignore complex imports in strategy/__init__.py
+    strategy/__init__.py:F401
+
+[isort]
+profile = black
+line_length = 127
+skip = .git,__pycache__,build,dist,venv,env,.venv
+known_first_party = strategy,web
+known_third_party = flask,MetaTrader5,pandas,numpy
